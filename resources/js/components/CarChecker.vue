@@ -13,7 +13,7 @@
         type="submit"
         class="p-2 bg-blue-600 hover:bg-blue-700 rounded font-bold"
       >
-        Check Car
+        Check Cars
       </button>
     </form>
 
