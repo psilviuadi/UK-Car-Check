@@ -61,4 +61,14 @@ class CarController extends Controller
 
         return view('check-car', compact('car'));
     }
+
+    public function getVES(Request $request, string $plate)
+    {
+        return $this->vesService->lookup($plate);
+    }
+
+    public function getMOT(Request $request, string $plate)
+    {
+        return $this->motService->getHistoryForLicencePlate($plate);
+    }
 }
