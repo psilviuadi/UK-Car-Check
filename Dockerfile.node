@@ -1,0 +1,12 @@
+# Use a Vite-compatible Node version
+FROM node:22
+
+WORKDIR /var/www
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+# Default command for dev mode
+CMD ["npm", "run", "dev"]
