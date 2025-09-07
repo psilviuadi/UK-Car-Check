@@ -35,14 +35,17 @@ RUN composer install --no-dev --optimize-autoloader \
 # Copy built Vue assets from build stage
 COPY --from=build-frontend /app/public/build ./public/build
 
-# Remove default Nginx config and replace with ours
-RUN rm -f /etc/nginx/conf.d/default.conf
+# Remove ALL default Nginx configs and replace with ours
+RUN rm -f /etc/nginx/conf.d/*
 COPY docker/render/nginx.conf /etc/nginx/conf.d/default.conf
 COPY docker/render/supervisord.conf /etc/supervisord.conf
 
 # Send PHP-FPM logs to container stdout/stderr
 RUN sed -i "s|;error_log = .*|error_log = /proc/self/fd/2|" /usr/local/etc/php-fpm.d/www.conf \
     && sed -i "s|;access.log = .*|access.log = /proc/self/fd/1|" /usr/local/etc/php-fpm.d/www.conf
+
+# Debug step: list Laravel public folder contents in build logs
+RUN ls -al /var/www/html/public
 
 EXPOSE 80
 
