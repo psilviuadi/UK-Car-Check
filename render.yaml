@@ -4,7 +4,7 @@ services:
     env: docker
     dockerfilePath: ./docker/render/Dockerfile
     dockerContext: .
-    plan: starter
+    plan: free          # 👈 use free tier
     autoDeploy: true
     envVars:
       - key: APP_ENV
@@ -13,6 +13,8 @@ services:
         value: false
       - key: APP_KEY
         generateValue: true
+      - key: APP_URL
+        value: https://uk-car-checker.onrender.com
       - key: DB_CONNECTION
         value: mysql
       - key: DB_HOST
@@ -39,4 +41,4 @@ services:
 databases:
   - name: uk-car-checker-db
     databaseName: ukcarchecker
-    plan: starter
+    plan: free          # 👈 use free tier
