@@ -29,15 +29,6 @@ COPY . .
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Clear and rebuild Laravel caches
-RUN php artisan config:clear \
-    && php artisan cache:clear \
-    && php artisan route:clear \
-    && php artisan view:clear \
-    && php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
-
 # Copy built frontend assets
 COPY --from=build-frontend /app/public/build ./public/build
 
@@ -52,5 +43,5 @@ RUN sed -i "s|;error_log = .*|error_log = /proc/self/fd/2|" /usr/local/etc/php-f
 
 EXPOSE 80
 
-# Run Supervisor (manages php-fpm + nginx)
+# Run Supervisor (which will also run artisan optimize)
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
