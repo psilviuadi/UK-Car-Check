@@ -1,50 +1,50 @@
-# ---- Build Vue assets ----
+# ---- Build Frontend (Vite) ----
 FROM node:20 AS build-frontend
 WORKDIR /app
 
-# Copy package files and install fresh
+# Copy package files and install clean
 COPY package*.json ./
 RUN rm -rf node_modules package-lock.json && npm install
 
-# Copy all files and build
+# Copy all sources and build
 COPY . .
 RUN npm run build
 
-# ---- PHP/Laravel ----
+# ---- Backend (PHP + Nginx) ----
 FROM php:8.2-fpm AS php-backend
 WORKDIR /var/www/html
 
-# Install system dependencies + php extensions + supervisor + nginx
+# Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
     git curl unzip libpng-dev libonig-dev libxml2-dev zip supervisor nginx \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copy Laravel files
+# Copy Laravel source
 COPY . .
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Install PHP dependencies (optimized, no dev)
+RUN composer install --no-dev --optimize-autoloader \
+    && php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
 
-# Copy Vue build into Laravel public
-COPY --from=build-frontend /app/dist ./public/build
+# Copy built Vue assets from build stage
+COPY --from=build-frontend /app/public/build ./public/build
 
-# Remove default nginx config
+# Remove default Nginx config and replace with ours
 RUN rm -f /etc/nginx/conf.d/default.conf
-
-# Copy our nginx config
 COPY docker/render/nginx.conf /etc/nginx/conf.d/default.conf
 COPY docker/render/supervisord.conf /etc/supervisord.conf
 
-# Set PHP-FPM error log to stderr
-RUN sed -i "s|;error_log = log/php-fpm.log|error_log = /proc/self/fd/2|" /usr/local/etc/php-fpm.d/www.conf \
-    && sed -i "s|;access.log = log/$pool.access.log|access.log = /proc/self/fd/1|" /usr/local/etc/php-fpm.d/www.conf
+# Send PHP-FPM logs to container stdout/stderr
+RUN sed -i "s|;error_log = .*|error_log = /proc/self/fd/2|" /usr/local/etc/php-fpm.d/www.conf \
+    && sed -i "s|;access.log = .*|access.log = /proc/self/fd/1|" /usr/local/etc/php-fpm.d/www.conf
 
-
-# Expose port
 EXPOSE 80
 
-# Start supervisord (runs php-fpm + nginx)
+# Start supervisor (runs PHP-FPM + Nginx)
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
