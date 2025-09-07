@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: uk-car-checker
+    env: docker
+    dockerfilePath: ./docker/render/Dockerfile
+    dockerContext: .
+    plan: starter
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        fromDatabase:
+          name: uk-car-checker-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: uk-car-checker-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: uk-car-checker-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: uk-car-checker-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: uk-car-checker-db
+          property: password
+
+databases:
+  - name: uk-car-checker-db
+    databaseName: ukcarchecker
+    plan: starter

@@ -1,67 +1,57 @@
 services:
-  laravel:
-    build: .
-    container_name: laravel_app
+  php:
+    build:
+      context: .
+      dockerfile: docker/php.Dockerfile
+    container_name: laravel-php
     volumes:
-      - .:/var/www
+      - .:/var/www/html
     depends_on:
-      - db
-    networks:
-      - laravel
-    ports:
-      - "9000:9000"
+      - mysql
 
-  node-dev:
+  vue-dev:
     build:
       context: .
-      dockerfile: Dockerfile.node
-    container_name: node_dev
-    command: ["npm", "run", "dev"]
+      dockerfile: docker/vue.dev.Dockerfile
+    container_name: vue-dev
     volumes:
-      - .:/var/www
+      - .:/app
     ports:
-      - "5173:5173" # Vite dev server
-    networks:
-      - laravel
+      - "5173:5173"
 
-  node-build:
+  vue-prod:
     build:
       context: .
-      dockerfile: Dockerfile.node
-    container_name: node_build
-    command: ["npm", "run", "build"]
+      dockerfile: docker/vue.prod.Dockerfile
+    container_name: vue-prod
     volumes:
-      - .:/var/www
-    networks:
-      - laravel
+      - .:/var/www/html
 
   nginx:
-    image: nginx:alpine
-    container_name: laravel_nginx
-    volumes:
-      - .:/var/www
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    build:
+      context: .
+      dockerfile: docker/nginx.Dockerfile
+    container_name: laravel-nginx
     ports:
       - "8080:80"
+    volumes:
+      - .:/var/www/html
     depends_on:
-      - laravel
-    networks:
-      - laravel
+      - php
 
-  db:
+  mysql:
     image: mysql:8
-    container_name: laravel_db
-    restart: always
+    container_name: laravel-mysql
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: laravel
-      MYSQL_ROOT_PASSWORD: root
       MYSQL_USER: laravel
       MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
     ports:
       - "3306:3306"
-    networks:
-      - laravel
+    volumes:
+      - db_data:/var/lib/mysql
 
-networks:
-  laravel:
-    driver: bridge
+volumes:
+  db_data:
