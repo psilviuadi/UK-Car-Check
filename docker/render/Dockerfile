@@ -54,4 +54,4 @@ RUN sed -i "s|;error_log = .*|error_log = /proc/self/fd/2|" /usr/local/etc/php-f
 EXPOSE 80
 
 # Start supervisord (runs php-fpm + nginx)
-CMD ["/usr/bin/supervisord", "-c", "/etc/supe]()
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
