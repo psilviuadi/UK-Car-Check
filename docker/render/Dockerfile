@@ -31,7 +31,10 @@ RUN composer install --no-dev --optimize-autoloader
 # Copy Vue build into Laravel public
 COPY --from=build-frontend /app/public/build ./public/build
 
-# Copy nginx + supervisor configs
+# Remove default nginx config
+RUN rm -f /etc/nginx/conf.d/default.conf
+
+# Copy our nginx config
 COPY docker/render/nginx.conf /etc/nginx/conf.d/default.conf
 COPY docker/render/supervisord.conf /etc/supervisord.conf
 
