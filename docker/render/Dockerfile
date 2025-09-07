@@ -32,9 +32,10 @@ RUN composer install --no-dev --optimize-autoloader
 # Copy built frontend assets
 COPY --from=build-frontend /app/public/build ./public/build
 
-# Remove default Nginx config & copy ours
-RUN rm -f /etc/nginx/conf.d/default.conf
-COPY docker/render/nginx.conf /etc/nginx/conf.d/default.conf
+# Remove default Nginx config and replace with ours
+RUN rm -f /etc/nginx/sites-enabled/default \
+    && rm -f /etc/nginx/conf.d/default.conf
+COPY docker/render/nginx.conf /etc/nginx/conf.d/laravel.conf
 COPY docker/render/supervisord.conf /etc/supervisord.conf
 
 # Forward PHP logs to Docker log collector
